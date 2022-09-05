@@ -22,4 +22,10 @@ cardRouter.post(
   cardControllers.activateCard
 );
 
+cardRouter.get(
+  "/cards/balance/:id",
+  cardMiddlewares.validateId,
+  cardControllers.getBalance
+);
+
 export default cardRouter;

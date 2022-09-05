@@ -3,6 +3,8 @@ import * as cardRepository from "../repositories/cardRepository";
 import { faker } from "@faker-js/faker";
 import dayjs from "dayjs";
 import * as encryptionServices from "./encryptionServices";
+import * as paymentRepository from "../repositories/paymentRepository";
+import * as rechargeRepository from "../repositories/rechargeRepository";
 
 export async function newCard(card: cardRepository.CardInsertData) {
   const newCard: cardRepository.CardInsertData = {
@@ -10,7 +12,8 @@ export async function newCard(card: cardRepository.CardInsertData) {
     securityCode: encryptionServices.encryptSecurityCode(card.securityCode),
   };
   try {
-    await cardRepository.insert(newCard);
+    const id = await cardRepository.insert(newCard);
+    return id.id;
   } catch (err) {
     throw err;
   }
@@ -65,4 +68,33 @@ export async function activateCard(id: number, password: string) {
   } catch (err) {
     throw err;
   }
+}
+
+export async function getBalance(id: number) {
+  try {
+    const transactions = await paymentRepository.findByCardId(id);
+    const recharges = await rechargeRepository.findByCardId(id);
+    const balance = sumBalance(transactions, recharges);
+    const response = {
+      balance,
+      transactions,
+      recharges,
+    };
+    return response;
+  } catch (err) {
+    throw err;
+  }
+}
+
+function sumBalance(payments: any, recharges: any) {
+  let balance: number = 0;
+  for (let i = 0; i < recharges.length; i++) {
+    balance = balance + recharges[i].amount;
+  }
+
+  for (let i = 0; i < payments.length; i++) {
+    balance = balance - payments[i].amount;
+  }
+
+  return balance;
 }

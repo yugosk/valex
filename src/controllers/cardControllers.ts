@@ -11,8 +11,9 @@ export async function newCard(req: Request, res: Response) {
   try {
     await getCompany(apiKey);
     const newCard = await cardServices.generateCardData(employee, type);
-    await cardServices.newCard(newCard);
+    const id = await cardServices.newCard(newCard);
     const response = {
+      id,
       number: newCard.number,
       cardholderName: newCard.cardholderName,
       securityCode: newCard.securityCode,
@@ -38,10 +39,12 @@ export async function activateCard(req: Request, res: Response) {
   }
 }
 
-//{
-//  "cardNumber": "2937457372577523",
-//  "cardholderName": "CICLANA M MADEIRA",
-//  "securityCode": "238",
-//  "expirationDate": "09/27",
-//  "type": "groceries"
-//}
+export async function getBalance(req: Request, res: Response) {
+  const id = res.locals.id;
+  try {
+    const response = await cardServices.getBalance(Number(id));
+    res.send(response);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+}

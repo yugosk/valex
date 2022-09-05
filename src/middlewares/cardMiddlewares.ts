@@ -100,3 +100,21 @@ export async function validateCardActivation(
     res.status(500).send(err);
   }
 }
+
+export async function validateId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { id } = req.params;
+  try {
+    const card = await cardRepository.findById(Number(id));
+    if (!card) {
+      return res.status(404).send("Invalid card id");
+    }
+    res.locals.id = id;
+    next();
+  } catch (err) {
+    res.status(500).send(err);
+  }
+}
