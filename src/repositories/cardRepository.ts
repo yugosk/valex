@@ -102,6 +102,16 @@ export async function insert(cardData: CardInsertData) {
   );
 }
 
+export async function update(id: number, password: string) {
+  connection.query(
+    `
+    UPDATE cards SET password=$1, "isBlocked"=false
+    WHERE id=$2
+  `,
+    [password, id]
+  );
+}
+
 //export async function update(id: number, cardData: CardUpdateData) {
 //  const { objectColumns: cardColumns, objectValues: cardValues } =
 //    mapObjectToUpdateQuery({

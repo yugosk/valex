@@ -7,7 +7,7 @@ export default function validateSchema(schema: ObjectSchema) {
     const { error } = schema.validate(body, { abortEarly: false });
 
     if (error) {
-      res.status(422).send("Invalid format");
+      return res.status(422).send(error.details.map((i) => i.message));
     }
 
     next();
