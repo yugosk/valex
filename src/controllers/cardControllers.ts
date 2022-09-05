@@ -34,7 +34,6 @@ export async function activateCard(req: Request, res: Response) {
     cardServices.activateCard(id, password);
     res.status(201).send("Card activated succesfully");
   } catch (err) {
-    console.log(err);
     res.status(500).send(err);
   }
 }
