@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import * as cardServices from "../services/cardServices";
 import { Employee } from "../repositories/employeeRepository";
 import { getCompany } from "../services/companyServices";
+import { errorDetails } from "../services/errorServices";
 
 export async function newCard(req: Request, res: Response) {
   const apiKey: any = req.headers["x-api-key"];
@@ -23,7 +24,8 @@ export async function newCard(req: Request, res: Response) {
 
     res.status(201).send(response);
   } catch (err: any) {
-    res.status(500).send(err);
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -34,8 +36,9 @@ export async function activateCard(req: Request, res: Response) {
   try {
     cardServices.activateCard(id, password);
     res.status(201).send("Card activated succesfully");
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -44,8 +47,9 @@ export async function getBalance(req: Request, res: Response) {
   try {
     const response = await cardServices.getBalance(Number(id));
     res.send(response);
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -54,8 +58,9 @@ export async function blockCard(req: Request, res: Response) {
   try {
     await cardServices.blockCard(id);
     res.status(200).send("Card blocked succesfully");
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -64,7 +69,8 @@ export async function unblockCard(req: Request, res: Response) {
   try {
     await cardServices.unblockCard(id);
     res.status(200).send("Card unblocked succesfully");
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }

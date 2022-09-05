@@ -9,14 +9,7 @@ export async function getBusiness(businessId: number) {
     } else {
       return business;
     }
-  } catch (err) {
-    if (err === "err_invalid_businessId") {
-      throw { code: 404, message: "Invalid business id" };
-    } else {
-      throw {
-        code: 500,
-        message: "There was an issue with the server, try again later",
-      };
-    }
+  } catch (err: any) {
+    throw err;
   }
 }

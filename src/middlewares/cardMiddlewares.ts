@@ -4,6 +4,7 @@ import * as cardRepository from "../repositories/cardRepository";
 import * as encryptionServices from "../services/encryptionServices";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { errorDetails } from "../services/errorServices";
 
 dayjs.extend(customParseFormat);
 
@@ -16,12 +17,13 @@ export async function validateEmployee(
   try {
     const employee = await findById(employeeId);
     if (!employee) {
-      return res.status(404).send("Employee ID is not valid");
+      throw "err_employee_not_found";
     }
     res.locals.employee = employee;
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -37,13 +39,12 @@ export async function validateType(
       employeeId
     );
     if (isValid) {
-      return res
-        .status(409)
-        .send("This employee already has a card of this type");
+      throw "err_employee_card";
     }
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -61,13 +62,14 @@ export async function validateCardDetails(
     );
 
     if (!card) {
-      return res.status(404).send("Invalid card info");
+      throw "err_card_info";
     }
 
     res.locals.card = card;
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -85,16 +87,17 @@ export async function validateCardActivation(
     );
 
     if (decryptedCVV !== securityCode) {
-      return res.status(401).send("Incorrect security code");
+      throw "err_security_code";
     }
 
     if (card.password) {
-      return res.status(409).send("Card already activated");
+      throw "err_activated";
     }
 
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -108,12 +111,13 @@ export async function validateExpirationDate(
   try {
     const expirationDate = dayjs(card.expirationDate, "MM/YY");
     if (expirationDate.isBefore(dayjs())) {
-      return res.status(410).send("Card expired");
+      throw "err_expired";
     }
 
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -126,13 +130,14 @@ export async function validateId(
   try {
     const card: cardRepository.Card = await cardRepository.findById(Number(id));
     if (!card) {
-      return res.status(404).send("Invalid card id");
+      throw "err_card_id";
     }
     res.locals.card = card;
     res.locals.id = id;
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -141,12 +146,16 @@ export async function validateBlock(
   res: Response,
   next: NextFunction
 ) {
-  const card: cardRepository.Card = res.locals.card;
-  if (card.isBlocked) {
-    return res.status(409).send("Card is blocked");
+  try {
+    const card: cardRepository.Card = res.locals.card;
+    if (card.isBlocked) {
+      throw "err_blocked";
+    }
+    next();
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
-
-  next();
 }
 
 export async function validateUnblock(
@@ -154,12 +163,17 @@ export async function validateUnblock(
   res: Response,
   next: NextFunction
 ) {
-  const card: cardRepository.Card = res.locals.card;
-  if (!card.isBlocked) {
-    return res.status(409).send("Card is unblocked");
-  }
+  try {
+    const card: cardRepository.Card = res.locals.card;
+    if (!card.isBlocked) {
+      throw "err_blocked";
+    }
 
-  next();
+    next();
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
+  }
 }
 
 export async function validatePassword(
@@ -170,10 +184,15 @@ export async function validatePassword(
   const { password } = req.body;
   const card: cardRepository.Card = res.locals.card;
 
-  if (encryptionServices.compareHash(password, card.password)) {
-    next();
-  } else {
-    return res.status(401).send("Incorrect password");
+  try {
+    if (encryptionServices.compareHash(password, card.password)) {
+      next();
+    } else {
+      throw "err_password";
+    }
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -183,10 +202,16 @@ export async function verifyActive(
   next: NextFunction
 ) {
   const card: cardRepository.Card = res.locals.card;
-  if (card.password) {
-    next();
-  } else {
-    return res.status(409).send("Card has not been activated yet");
+
+  try {
+    if (card.password) {
+      next();
+    } else {
+      throw "err_unactivated";
+    }
+  } catch (err) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }
 
@@ -201,11 +226,12 @@ export async function findCard(
       Number(cardId)
     );
     if (!card) {
-      return res.status(404).send("Invalid card id");
+      throw "err_card_id";
     }
     res.locals.card = card;
     next();
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }

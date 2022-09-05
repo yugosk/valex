@@ -4,6 +4,7 @@ import { getBusiness } from "../services/businessServices";
 import { getBalance } from "../services/cardServices";
 import { PaymentInsertData } from "../repositories/paymentRepository";
 import { payment } from "../services/paymentServices";
+import { errorDetails } from "../services/errorServices";
 
 export async function postPayment(req: Request, res: Response) {
   const { businessId, amount } = req.body;
@@ -12,19 +13,13 @@ export async function postPayment(req: Request, res: Response) {
     const business = await getBusiness(businessId);
 
     if (card.type !== business.type) {
-      return res
-        .status(401)
-        .send("This card type does not match the business's");
+      throw "err_card_type";
     }
 
     const { balance: balance } = await getBalance(card.id);
 
     if (amount > balance) {
-      return res
-        .status(402)
-        .send(
-          "This card does not has the necessary amount to complete the purchase"
-        );
+      throw "err_insufficient_funds";
     }
 
     const paymentInfo: PaymentInsertData = {
@@ -35,7 +30,8 @@ export async function postPayment(req: Request, res: Response) {
 
     await payment(paymentInfo);
     res.status(201).send("Payment completed succesfully");
-  } catch (err) {
-    res.status(500).send(err);
+  } catch (err: any) {
+    const error = errorDetails(err);
+    res.status(error.code).send(error.message);
   }
 }

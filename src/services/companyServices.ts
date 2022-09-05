@@ -5,18 +5,11 @@ export async function getCompany(apiKey: string) {
     const company: Company = await findByApiKey(apiKey);
 
     if (!company) {
-      throw "err_invalid_apiKey";
+      throw "err_apiKey";
     } else {
       return company;
     }
-  } catch (err) {
-    if (err === "err_invalid_apiKey") {
-      throw { code: 404, message: "Invalid api key" };
-    } else {
-      throw {
-        code: 500,
-        message: "There was an issue with the server, try again later",
-      };
-    }
+  } catch (err: any) {
+    throw err;
   }
 }
