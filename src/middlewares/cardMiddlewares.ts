@@ -176,3 +176,16 @@ export async function validatePassword(
     return res.status(401).send("Incorrect password");
   }
 }
+
+export async function verifyActive(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const card: cardRepository.Card = res.locals.card;
+  if (card.password) {
+    next();
+  } else {
+    return res.status(409).send("Card has not been activated yet");
+  }
+}
