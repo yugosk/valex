@@ -1,4 +1,4 @@
-import { connection } from "../database.js";
+import { connection } from "../dbStrategy/postgres";
 
 export interface Payment {
   id: number;

@@ -1,13 +1,12 @@
 import cors from "cors";
 import express from "express";
-import { Request, Response } from "express";
+import router from "./routers/router";
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Request succesful");
-});
+app.use(router);
 
 const PORT: number = 4000;
 
