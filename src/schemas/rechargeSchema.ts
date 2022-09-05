@@ -1,5 +1,5 @@
 import Joi, { ObjectSchema } from "joi";
 
 export const rechargeSchema: ObjectSchema = Joi.object({
-  amount: Joi.number().greater(0),
+  amount: Joi.number().greater(0).required(),
 });

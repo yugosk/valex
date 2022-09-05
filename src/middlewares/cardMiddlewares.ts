@@ -143,7 +143,7 @@ export async function validateBlock(
 ) {
   const card: cardRepository.Card = res.locals.card;
   if (card.isBlocked) {
-    return res.status(409).send("Card is already blocked");
+    return res.status(409).send("Card is blocked");
   }
 
   next();
@@ -156,7 +156,7 @@ export async function validateUnblock(
 ) {
   const card: cardRepository.Card = res.locals.card;
   if (!card.isBlocked) {
-    return res.status(409).send("Card is already unblocked");
+    return res.status(409).send("Card is unblocked");
   }
 
   next();
@@ -187,5 +187,25 @@ export async function verifyActive(
     next();
   } else {
     return res.status(409).send("Card has not been activated yet");
+  }
+}
+
+export async function findCard(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { cardId } = req.body;
+  try {
+    const card: cardRepository.Card = await cardRepository.findById(
+      Number(cardId)
+    );
+    if (!card) {
+      return res.status(404).send("Invalid card id");
+    }
+    res.locals.card = card;
+    next();
+  } catch (err) {
+    res.status(500).send(err);
   }
 }
