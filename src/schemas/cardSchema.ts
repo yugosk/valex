@@ -18,3 +18,7 @@ export const activateCardSchema: ObjectSchema = Joi.object({
   securityCode: Joi.string().pattern(/\d{3}/).required(),
   password: Joi.string().pattern(/\d{4}/).required(),
 });
+
+export const blockCardSchema: ObjectSchema = Joi.object({
+  password: Joi.string().pattern(/\d{4}/).required(),
+});

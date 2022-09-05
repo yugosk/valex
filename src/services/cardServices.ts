@@ -98,3 +98,19 @@ function sumBalance(payments: any, recharges: any) {
 
   return balance;
 }
+
+export async function blockCard(id: number) {
+  try {
+    await cardRepository.updateBlock(id, "true");
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function unblockCard(id: number) {
+  try {
+    await cardRepository.updateBlock(id, "false");
+  } catch (err) {
+    throw err;
+  }
+}

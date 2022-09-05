@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { findById } from "../repositories/employeeRepository";
 import * as cardRepository from "../repositories/cardRepository";
-import { decryptSecurityCode } from "../services/encryptionServices";
+import * as encryptionServices from "../services/encryptionServices";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
@@ -80,19 +80,35 @@ export async function validateCardActivation(
   const card: cardRepository.Card = res.locals.card;
 
   try {
-    const decryptedCVV = decryptSecurityCode(card.securityCode);
+    const decryptedCVV = encryptionServices.decryptSecurityCode(
+      card.securityCode
+    );
 
     if (decryptedCVV !== securityCode) {
       return res.status(401).send("Incorrect security code");
     }
 
+    if (card.password) {
+      return res.status(409).send("Card already activated");
+    }
+
+    next();
+  } catch (err) {
+    res.status(500).send(err);
+  }
+}
+
+export async function validateExpirationDate(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const card: cardRepository.Card = res.locals.card;
+
+  try {
     const expirationDate = dayjs(card.expirationDate, "MM/YY");
     if (expirationDate.isBefore(dayjs())) {
       return res.status(410).send("Card expired");
-    }
-
-    if (card.password) {
-      return res.status(409).send("Card already activated");
     }
 
     next();
@@ -108,13 +124,55 @@ export async function validateId(
 ) {
   const { id } = req.params;
   try {
-    const card = await cardRepository.findById(Number(id));
+    const card: cardRepository.Card = await cardRepository.findById(Number(id));
     if (!card) {
       return res.status(404).send("Invalid card id");
     }
+    res.locals.card = card;
     res.locals.id = id;
     next();
   } catch (err) {
     res.status(500).send(err);
+  }
+}
+
+export async function validateBlock(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const card: cardRepository.Card = res.locals.card;
+  if (card.isBlocked) {
+    return res.status(409).send("Card is already blocked");
+  }
+
+  next();
+}
+
+export async function validateUnblock(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const card: cardRepository.Card = res.locals.card;
+  if (!card.isBlocked) {
+    return res.status(409).send("Card is already unblocked");
+  }
+
+  next();
+}
+
+export async function validatePassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { password } = req.body;
+  const card: cardRepository.Card = res.locals.card;
+
+  if (encryptionServices.compareHash(password, card.password)) {
+    next();
+  } else {
+    return res.status(401).send("Incorrect password");
   }
 }

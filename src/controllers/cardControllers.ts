@@ -48,3 +48,23 @@ export async function getBalance(req: Request, res: Response) {
     res.status(500).send(err);
   }
 }
+
+export async function blockCard(req: Request, res: Response) {
+  const id = res.locals.id;
+  try {
+    await cardServices.blockCard(id);
+    res.status(200).send("Card blocked succesfully");
+  } catch (err) {
+    res.status(500).send(err);
+  }
+}
+
+export async function unblockCard(req: Request, res: Response) {
+  const id = res.locals.id;
+  try {
+    await cardServices.unblockCard(id);
+    res.status(200).send("Card unblocked succesfully");
+  } catch (err) {
+    res.status(500).send(err);
+  }
+}
